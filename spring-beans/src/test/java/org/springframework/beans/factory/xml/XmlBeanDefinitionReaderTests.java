@@ -95,6 +95,13 @@ public class XmlBeanDefinitionReaderTests {
 		reader.loadBeanDefinitions(resource);
 		testBeanDefinitions(registry);
 	}
+	@Test
+	public void testzmcDemo(){
+		ClassPathResource resource = new ClassPathResource("test.xml"); // <1>
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory(); // <2>
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory); // <3>
+		reader.loadBeanDefinitions(resource); // <4>
+	}
 //	调试 Spring 解析 XML 配合，获得 Bean 的定义
 	@Test
 	public void withFreshInputStream() {
