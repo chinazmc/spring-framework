@@ -95,7 +95,7 @@ public class XmlBeanDefinitionReaderTests {
 		reader.loadBeanDefinitions(resource);
 		testBeanDefinitions(registry);
 	}
-
+//	调试 Spring 解析 XML 配合，获得 Bean 的定义
 	@Test
 	public void withFreshInputStream() {
 		SimpleBeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
