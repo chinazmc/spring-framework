@@ -37,6 +37,12 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.support.RootBeanDefinition
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
  */
+/**
+ * org.springframework.cor.AttributeAccessor 接口，
+ * 定义了与其它对象的（元数据）进行连接和访问的约定，即对属性的修改，包括获取、设置、删除。
+ *
+ * org.springframework.beans.BeanMetadataElement 接口，Bean 元对象持有的配置元素可以通过 #getSource() 方法来获取。
+ * */
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**

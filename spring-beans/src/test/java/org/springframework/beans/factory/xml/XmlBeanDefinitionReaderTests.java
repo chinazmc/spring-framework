@@ -97,7 +97,8 @@ public class XmlBeanDefinitionReaderTests {
 	}
 	@Test
 	public void testzmcDemo(){
-		ClassPathResource resource = new ClassPathResource("test.xml"); // <1>
+		ClassPathResource resource = new ClassPathResource("org/springframework/beans/factory/xml/test.xml"); // <1>
+//		ClassPathResource resource = new ClassPathResource("org/springframework/beans/factory/xml/import.xml"); // <1>
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory(); // <2>
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory); // <3>
 		reader.loadBeanDefinitions(resource); // <4>
