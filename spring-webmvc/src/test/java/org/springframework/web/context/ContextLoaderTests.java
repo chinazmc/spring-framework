@@ -59,7 +59,7 @@ import static org.junit.Assert.*;
  * @see org.springframework.web.context.support.Spr8510Tests
  */
 public class ContextLoaderTests {
-
+    //这里是spring mvc的入口
 	@Test
 	public void testContextLoaderListenerWithDefaultContext() {
 		MockServletContext sc = new MockServletContext("");
