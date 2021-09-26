@@ -332,6 +332,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 // <8> bean 实例化
 				// Create bean instance.
 				if (mbd.isSingleton()) { // 单例模式
+					/**
+					 *已经分析了从缓存中获取单例模式的 bean 。但是如果缓存中不存在呢？
+					 * 则需要从头开始加载 Bean ，这个过程由 #getSingleton(String beanName, ObjectFactory<?> singletonFactory) 方法来实现。
+					 **/
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
