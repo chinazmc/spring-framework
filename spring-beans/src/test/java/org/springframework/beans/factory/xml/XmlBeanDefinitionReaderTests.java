@@ -102,6 +102,10 @@ public class XmlBeanDefinitionReaderTests {
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory(); // <2>
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory); // <3>
 		reader.loadBeanDefinitions(resource); // <4>
+
+
+		TestBean bean = (TestBean) factory.getBean("validEmptyWithDescription");
+		assertNotNull(bean);
 	}
 //	调试 Spring 解析 XML 配合，获得 Bean 的定义
 	@Test
