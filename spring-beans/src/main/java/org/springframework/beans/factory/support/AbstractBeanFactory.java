@@ -241,6 +241,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			throws BeansException {
 // <1> 返回 bean 名称，剥离工厂引用前缀。
 		// 如果 name 是 alias ，则获取对应映射的 beanName
+
 		String beanName = transformedBeanName(name);
 		Object bean;
 // 从缓存中或者实例工厂中获取 Bean 对象
