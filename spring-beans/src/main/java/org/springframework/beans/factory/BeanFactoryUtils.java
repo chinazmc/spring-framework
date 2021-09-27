@@ -89,12 +89,23 @@ public abstract class BeanFactoryUtils {
 	 */
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		//条件成立：说明getBean时传的name，不是&开头的，所以直接返回。
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
 		// computeIfAbsent 方法，分成两种情况：
 		//      1. 未存在，则进行计算执行，并将结果添加到缓存、
 		//      2. 已存在，则直接返回，无需计算。
+
+		//执行到这里，说明name一定是&开头的，说明这次get就是要拿 FactoryBean实例对象。
+
+		//transformedBeanNameCache 缓存处理完&开头的name后的beanName。提高后续程序运行性能的。
+		//科普一下：map.computeIfAbsent(key, value)
+		//当map中对应的key为null或者 key->value是null时，这次put操作就会成功，写成功也会返回value。
+		//否则就会失败，并且返回原有key->value。
+
+		//假设 beanName="&abc" ="abc"
+		//返回"abc"
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
