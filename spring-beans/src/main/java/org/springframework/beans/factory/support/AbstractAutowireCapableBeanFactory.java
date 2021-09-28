@@ -1205,15 +1205,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Shortcut when re-creating the same bean...
+		//表示bd对应的构造信息是否已经解析成可以反射调用的构造方法method信息了...
 		boolean resolved = false;
+		//是否自动匹配构造方法..
 		boolean autowireNecessary = false;
 		if (args == null) {
 			// constructorArgumentLock 构造函数的常用锁
 			synchronized (mbd.constructorArgumentLock) {
+				//条件成立：说明bd的构造信息已经转化成可以反射调用的method了...
 				// 如果已缓存的解析的构造函数或者工厂方法不为空，则可以利用构造函数解析
 				// 因为需要根据参数确认到底使用哪个构造函数，该过程比较消耗性能，所有采用缓存机制
 				if (mbd.resolvedConstructorOrFactoryMethod != null) {
 					resolved = true;
+					//当resolvedConstructorOrFactoryMethod 有值时，且构造方法有参数，那么可以认为这个字段值就是true。
+					//只有什么情况下这个字段是false呢？
+					//1.resolvedConstructorOrFactoryMethod == null
+					//2.当resolvedConstructorOrFactoryMethod 表示的是默认的构造方法，无参构造方法。
 					autowireNecessary = mbd.constructorArgumentsResolved;
 				}
 			}
@@ -1222,10 +1229,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (resolved) {
 			// <3.1> autowire 自动注入，调用构造函数自动注入
 			if (autowireNecessary) {
+				//有参数，那么就需要根据参数 去匹配合适的构造方法了...
+				//拿出当前Class的所有构造器，然后根据参数信息 去匹配出一个最优的选项，然后执行最优的 构造器 创建出实例。
 				return autowireConstructor(beanName, mbd, null, null);
 			}
 			else {
 				// <3.2> 使用默认构造函数构造
+				//无参构造方法处理
 				return instantiateBean(beanName, mbd);
 			}
 		}
@@ -1233,7 +1243,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Candidate constructors for autowiring?
 		// <4> 确定解析的构造函数
 		// 主要是检查已经注册的 SmartInstantiationAwareBeanPostProcessor
+
+		//典型的应用：@Autowired 注解打在了 构造器方法上。
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
+		//条件一：成立，后处理指定了构造方法数组（自定义）
+		//条件二：mbd autowiredMode 一般情况是no
+		//条件三：条件成立，说明bean信息中配置了 构造参数信息。
+		//条件四：getBean时，args有参数..
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
 			return autowireConstructor(beanName, mbd, ctors, args);

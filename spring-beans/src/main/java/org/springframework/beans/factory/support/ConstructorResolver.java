@@ -118,19 +118,26 @@ class ConstructorResolver {
 			@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs) {
 
 		BeanWrapperImpl bw = new BeanWrapperImpl();
+		//1.向wrapper中注册 conversion
+		//2.向wrapper中注册 属性编辑器..
 		this.beanFactory.initBeanWrapper(bw);
-
+//实例化反射调用的构造器
 		Constructor<?> constructorToUse = null;
+		//实例化时真正去用的参数 持有对象。
 		ArgumentsHolder argsHolderToUse = null;
+		//实例化时使用的参数。
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
 		}
 		else {
+			//表示 构造器参数需要做转换的参数引用。
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
+				//条件成立：说明当前bd生成实例，不是第一次..缓存中有解析好的构造器方法可以直接拿来反射调用...
+				//constructorArgumentsResolved 条件成立,说明构造器参数已经解析过了..
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
 					argsToUse = mbd.resolvedConstructorArguments;
@@ -139,17 +146,22 @@ class ConstructorResolver {
 					}
 				}
 			}
+			//条件成立：resolvedConstructorArguments 参数是null，那preparedConstructorArguments一定是有值的。
 			if (argsToResolve != null) {
+				//可以认为preparedConstructorArguments 不是完全解析好的参数..还需要进一步解析。。。
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve, true);
 			}
 		}
-
+//条件成立：说明上面缓存机制失败，需要进行构造器匹配逻辑...autowireConstructors
 		if (constructorToUse == null || argsToUse == null) {
 			// Take specified constructors, if any.
+			//chosenCtors 什么时候有数据呢？ 构造方法上有@Autowired注解时，chosenCtors才会有数据。
 			Constructor<?>[] candidates = chosenCtors;
+			//条件成立：说明外部程序调用当前autowireConstructors方法时，并没有提供好 可选用的构造器..咱们需要通过Class拿到构造器信息
 			if (candidates == null) {
 				Class<?> beanClass = mbd.getBeanClass();
 				try {
+					//isNonPublicAccessAllowed 返回true，表示当前bd中的Class非public的方法也可以访问..
 					candidates = (mbd.isNonPublicAccessAllowed() ?
 							beanClass.getDeclaredConstructors() : beanClass.getConstructors());
 				}
@@ -159,15 +171,19 @@ class ConstructorResolver {
 							"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
 				}
 			}
+			//执行到这里，可选用的构造方法，已经准备好了..具体使用哪一个 还不清楚..
 
+			//条件成立：说明当前实例化 想要使用无参构造方法！
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
+				//条件成立:说明当前这个唯一可选项 构造器 就是 无参构造器！
 				if (uniqueCandidate.getParameterCount() == 0) {
 					synchronized (mbd.constructorArgumentLock) {
 						mbd.resolvedConstructorOrFactoryMethod = uniqueCandidate;
 						mbd.constructorArgumentsResolved = true;
 						mbd.resolvedConstructorArguments = EMPTY_ARGS;
 					}
+					//instantiate(beanName, mbd, uniqueCandidate, EMPTY_ARGS) 使用无参构造器 完成反射调用，创建出来实例对象。
 					bw.setBeanInstance(instantiate(beanName, mbd, uniqueCandidate, EMPTY_ARGS));
 					return bw;
 				}
@@ -176,36 +192,51 @@ class ConstructorResolver {
 			// Need to resolve the constructor.
 			boolean autowiring = (chosenCtors != null ||
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
+			//表示已经完成解析后的构造器参数值
 			ConstructorArgumentValues resolvedValues = null;
-
+			//表示构造器参数个数..
 			int minNrOfArgs;
 			if (explicitArgs != null) {
 				minNrOfArgs = explicitArgs.length;
 			}
 			else {
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
+				//表示已经完成解析后的构造器参数值
 				resolvedValues = new ConstructorArgumentValues();
+				//表示构造器参数个数..
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
-
+			//给可选用的构造器数组排序
+			//排序规则：public > 非公开 > 参数多的 > 参数少的
 			AutowireUtils.sortConstructors(candidates);
+			//这是什么？
+			//这个值越低，说明当前构造器参数列表类型和构造器参数匹配度越高，反之，这个值越高，说明当前构造器参数列表类型和构造器参数匹配度越低..
 			int minTypeDiffWeight = Integer.MAX_VALUE;
+			//模棱两可的构造器？ 假设第二个构造器的diffWeight值 与上一个一致，则将其放入到该集合..
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
-
+//筛选可选项 构造方法，找出一个diffWeight最低的构造器
 			for (Constructor<?> candidate : candidates) {
+				//获取当前处理的构造器参数个数..
+				//获取当前构造器参数类型数组..
 				Class<?>[] paramTypes = candidate.getParameterTypes();
-
+				//constructorToUse != null && argsToUse != null && argsToUse.length 这些参数的数据，都上前面循环筛选出来的东西..
+				//因为candidates是排过顺序的 排序规则：public > 非公开 > 参数多的 > 参数少的
+				//当前筛选出来的构造器 优先级 一定是优先于后面的 Constructor的。
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > paramTypes.length) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
 					break;
 				}
+				//minNrOfArgs表示bd中配置的构造器参数个数
+				//paramTypes.length 表示当前构造器参数个数
+				//条件成立：说明不匹配..
 				if (paramTypes.length < minNrOfArgs) {
 					continue;
 				}
 
 				ArgumentsHolder argsHolder;
+				//条件成立：说明bd中配置了构造器参数
 				if (resolvedValues != null) {
 					try {
 						String[] paramNames = ConstructorPropertiesChecker.evaluate(candidate, paramTypes.length);
@@ -237,10 +268,15 @@ class ConstructorResolver {
 					}
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
+				//LenientConstructorResolution == true 表示 ambiguousConstructors 允许有数据
+				//LenientConstructorResolution == false 表示 ambiguousConstructors 不允许有数据，有数据的话 会报错..
 
+				//typeDiffWeight 数值越高说明构造器与参数匹配度越低...
+				//计算出当前构造器参数类型 与 当前 构造器参数 匹配度。
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
 				// Choose this constructor if it represents the closest match.
+				//条件成立：说明当前循环处理的 构造器 比上一次筛选出来的构造器 更优先。
 				if (typeDiffWeight < minTypeDiffWeight) {
 					constructorToUse = candidate;
 					argsHolderToUse = argsHolder;
@@ -248,6 +284,7 @@ class ConstructorResolver {
 					minTypeDiffWeight = typeDiffWeight;
 					ambiguousConstructors = null;
 				}
+				//条件成立：说明当前处理的构造器 它计算出来的diffWeight值 与上一次 筛选出来的最优先的构造器的值一致...说明有模棱两可的情况...
 				else if (constructorToUse != null && typeDiffWeight == minTypeDiffWeight) {
 					if (ambiguousConstructors == null) {
 						ambiguousConstructors = new LinkedHashSet<>();
@@ -256,7 +293,7 @@ class ConstructorResolver {
 					ambiguousConstructors.add(candidate);
 				}
 			}
-
+//条件成立：说明未找到可以使用的构造器...只能报错了...
 			if (constructorToUse == null) {
 				if (causes != null) {
 					UnsatisfiedDependencyException ex = causes.removeLast();
@@ -275,14 +312,14 @@ class ConstructorResolver {
 						"(hint: specify index/type/name arguments for simple parameters to avoid type ambiguities): " +
 						ambiguousConstructors);
 			}
-
+//条件成立：说明自动匹配成功了..需要进行缓存。方便后来者...再次使用该bd实例化..
 			if (explicitArgs == null && argsHolderToUse != null) {
 				argsHolderToUse.storeCache(mbd, constructorToUse);
 			}
 		}
 
 		Assert.state(argsToUse != null, "Unresolved constructor arguments");
-		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));
+		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));//根据上面一系列算法 和逻辑 筛选出来的构造器 和 解析出来的参数 反射创建实例..
 		return bw;
 	}
 
