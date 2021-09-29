@@ -371,8 +371,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		//包装着当前 bd 需要注入的 注解信息集合。@Autowired @Value @Inject 信息元数据。
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			//注入，将注解信息解析后注入到 pvs 中。
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -426,7 +428,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					//查询出当前clazz的 关注的注解信息
 					metadata = buildAutowiringMetadata(clazz);
+					//将注解信息存入缓存，key是当前beanName，value即当前class上的注解信息
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
 			}
