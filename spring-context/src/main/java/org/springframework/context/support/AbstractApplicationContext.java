@@ -516,16 +516,20 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			//刷新容器预准备工作
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			//获取一个全新BeanFactory实例
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			//预处理bf
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				//空方法，留给子类实现，用于注册一些beanFactoryPostFactory
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
@@ -583,6 +587,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		// Switch to active.
+		//设置容器启动时间
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
 		this.active.set(true);
@@ -597,10 +602,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
+		//是留给子类去扩展（此处可以看看小刘源码的MyClassPathXmlApplicationContext）
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		//校验必须有的环境变量
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
@@ -638,19 +645,30 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return getBeanFactory();
 	}
 
-	/**
+	/**`
 	 * Configure the factory's standard context characteristics,
 	 * such as the context's ClassLoader and post-processors.
 	 * @param beanFactory the BeanFactory to configure
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
+		//给当前bf设置一个类加载器，用于加载bd的class信息
 		beanFactory.setBeanClassLoader(getClassLoader());
+		//spring el表达式，这个表达式谁解析？StandardBeanExpressionResolver
+		//#{object.a}
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+		//BeanWraaper本身就是属性编辑器注册中心，属性编辑器作用于beanwrpper内部管理的真实bean
+		//注入字段值时，当某个字段对应的类型在BeanWrpper内有对应的属性编辑器，那么对应类型的字段值
+		//就由该属性编辑器代理写入
+		// （可以参考小刘源码的spring-field-editor01-test.xml）
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
+		//添加后处理器，该后处理器主要用于向bean内部注入一些框架级别的实例，
+		//比如说环境变量，ApplicationContext...
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		//忽略指定类型的依赖
+		//意思就是说,bean内部有这些类型的字段的话，这些字段不参与依赖注入
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -660,11 +678,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		//注册一些类型 依赖关系
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
-
+//该后处理器，将配置的监听者注册到ac中
 		// Register early post-processor for detecting inner beans as ApplicationListeners.
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
@@ -1059,6 +1078,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#destroySingletons()
 	 */
 	protected void destroyBeans() {
+		//销毁原beanFactory内部的单实例
 		getBeanFactory().destroySingletons();
 	}
 

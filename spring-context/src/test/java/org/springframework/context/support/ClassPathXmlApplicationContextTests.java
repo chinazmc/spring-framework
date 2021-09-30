@@ -34,6 +34,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.CannotLoadBeanClassException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -77,6 +78,13 @@ public class ClassPathXmlApplicationContextTests {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(FQ_SIMPLE_CONTEXT);
 		assertTrue(ctx.containsBean("someMessageSource"));
 		ctx.close();
+	}
+	@Test
+	public void testzmcApplication(){
+		ApplicationContext ac =
+				new ClassPathXmlApplicationContext("spring-field-editor01-test.xml");
+		ac.getBean("student");
+
 	}
 
 	@Test
