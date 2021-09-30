@@ -1874,7 +1874,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
-			//后处理器调用点：BeforeInitialization   初始化之前的后处理器调用点
+			//后处理器调用点：BeforeInitialization   初始化之前的后处理器调用点(BeanPostProcessor )
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
@@ -1887,7 +1887,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
-			//后处理器调用点：AfterInitialization 初始化之后的后处理器的调用点
+			//后处理器调用点：AfterInitialization 初始化之后的后处理器的调用点(BeanPostProcessor )
 			//典型应用：Spring AOP的实现..后面讲 AOP系列时，还会来到这里。
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
