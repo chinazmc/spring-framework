@@ -57,8 +57,10 @@ final class PostProcessorRegistrationDelegate {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		//存储已经执行过的bfpp beanName
+		// 定义一个 set 保存所有的 BeanFactoryPostProcessors
 		Set<String> processedBeans = new HashSet<>();
 //条件成立，说明当前bf是bd注册中心，bd全部注册到bf内
+		// 如果当前 BeanFactory 为 BeanDefinitionRegistry
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			//将bf转换成bdRegistry
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;

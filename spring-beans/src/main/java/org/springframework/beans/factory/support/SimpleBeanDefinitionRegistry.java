@@ -30,7 +30,9 @@ import org.springframework.util.StringUtils;
  * Simple implementation of the {@link BeanDefinitionRegistry} interface.
  * Provides registry capabilities only, with no factory capabilities built in.
  * Can for example be used for testing bean definition readers.
- *
+ *SimpleBeanDefinitionRegistry 是 BeanDefinitionRegistry
+ * 一个简单的实现，它还继承 SimpleAliasRegistry（ AliasRegistry 的简单实现），
+ * 它仅仅只提供注册表功能，无工厂功能。
  * @author Juergen Hoeller
  * @since 2.5.2
  */

@@ -22,6 +22,8 @@ package org.springframework.core;
  *
  * @author Juergen Hoeller
  * @since 2.5.2
+ *
+ * 用于别名管理的通用型接口，作为 BeanDefinitionRegistry 的顶层接口
  */
 public interface AliasRegistry {
 
