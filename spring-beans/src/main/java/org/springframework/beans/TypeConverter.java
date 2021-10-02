@@ -34,6 +34,10 @@ import org.springframework.lang.Nullable;
  * @since 2.0
  * @see SimpleTypeConverter
  * @see BeanWrapperImpl
+ *
+ * 定义类型转换的接口，通常与 PropertyEditorRegistry 接口一起实现（但不是必须），但由于 TypeConverter 是基于线程不安全的 PropertyEditors ，因此 TypeConverters 本身也不被视为线程安全。
+ * 这里小编解释下，在 Spring 3 后，不在采用 PropertyEditors 类作为 Spring 默认的类型转换接口，而是采用 ConversionService 体系，但 ConversionService 是线程安全的，
+ * 所以在 Spring 3 后，如果你所选择的类型转换器是 ConversionService 而不是 PropertyEditors 那么 TypeConverters 则是线程安全的。
  */
 public interface TypeConverter {
 
@@ -69,6 +73,11 @@ public interface TypeConverter {
 	 * @see java.beans.PropertyEditor#getValue()
 	 * @see org.springframework.core.convert.ConversionService
 	 * @see org.springframework.core.convert.converter.Converter
+	 *
+	 * #convertIfNecessary(Object value, Class<T> requiredType, MethodParameter methodParam) 方法的实现者有两个：DataBinder 和 TypeConverterSupport 类。
+	 *
+	 * DataBinder 主要用于参数绑定（熟悉 Spring MVC 的都应该知道这个类）
+	 * TypeConverterSupport 则是 TypeConverter 的基本实现，使用的是 typeConverterDelegate 委托者。
 	 */
 	@Nullable
 	<T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,

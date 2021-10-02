@@ -178,19 +178,26 @@ public class GenericConversionService implements ConfigurableConversionService {
 	@Nullable
 	public Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		Assert.notNull(targetType, "Target type to convert to cannot be null");
+		// <1> 如果 sourceType 为空，则直接处理结果
 		if (sourceType == null) {
 			Assert.isTrue(source == null, "Source must be [null] if source type == [null]");
 			return handleResult(null, targetType, convertNullSource(null, targetType));
 		}
+		// <2> 如果类型不对，抛出 IllegalArgumentException 异常
 		if (source != null && !sourceType.getObjectType().isInstance(source)) {
 			throw new IllegalArgumentException("Source to convert from must be an instance of [" +
 					sourceType + "]; instead it was a [" + source.getClass().getName() + "]");
 		}
+		// <3> 获得对应的 GenericConverter 对象
 		GenericConverter converter = getConverter(sourceType, targetType);
+		// <4> 如果 converter 非空，则进行转换，然后再处理结果
 		if (converter != null) {
+			// <4.1> 执行转换
 			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
+			// <4.2> 处理器结果
 			return handleResult(sourceType, targetType, result);
 		}
+		// <5> 处理 converter 为空的情况
 		return handleConverterNotFound(source, sourceType, targetType);
 	}
 

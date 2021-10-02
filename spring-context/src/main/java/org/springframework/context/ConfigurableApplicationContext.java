@@ -39,6 +39,12 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 03.11.2003
+ *
+ * ConfigurableApplicationContext 接口提供的方法都是对 ApplicationContext 进行配置的，
+ * 例如 #setEnvironment(ConfigurableEnvironment environment)、#addBeanFactoryPostProcessor(BeanFactoryPostProcessor postProcessor)，同时它还继承了如下两个接口：
+ *
+ * Lifecycle：对 context 生命周期的管理，它提供 #start() 和 #stop() 方法启动和暂停组件。
+ * Closeable：标准 JDK 所提供的一个接口，用于最后关闭组件释放资源等。
  */
 public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable {
 
@@ -89,6 +95,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 
 	/**
 	 * Set the unique id of this application context.
+	 * // 为 ApplicationContext 设置唯一 ID
 	 * @since 3.0
 	 */
 	void setId(String id);
@@ -101,6 +108,8 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @param parent the parent context
 	 * @see org.springframework.web.context.ConfigurableWebApplicationContext
 	 */
+	// 为 ApplicationContext 设置 parent
+	// 父类不应该被修改：如果创建的对象不可用时，则应该在构造函数外部设置它
 	void setParent(@Nullable ApplicationContext parent);
 
 	/**
@@ -158,6 +167,8 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @throws IllegalStateException if already initialized and multiple refresh
 	 * attempts are not supported
 	 */
+	// 加载或者刷新配置
+	// 这是一个非常重要的方法
 	void refresh() throws BeansException, IllegalStateException;
 
 	/**
