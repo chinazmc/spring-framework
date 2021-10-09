@@ -130,9 +130,19 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
-		Executor executor = getTaskExecutor();
+		Executor executor = getTaskExecutor();//(如果有Executor，则广播事件就是通过异步来处理的)
+		/**
+		 * 1.根据事件和类型调用getApplicationListeners方法获取所有监听该事件的监听器
+		 *
+		 * 代码比较多，但是核心步骤其实就三步，
+		 * 第一步：获取事件广播器中所有的事件监听器
+		 * 第二步：遍历事件监听器,判断该监听器是否监听当前事件
+		 * 第三步：将所有监听当前事件的监听器进行排序
+		 * 其中第二步判断监听器是否监听事件的判断，主要是通过反射获取该监听器实现的接口泛型类，如果包含当前事件的类则表示监听，否则就表示不监听
+		 * */
 		for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
 			if (executor != null) {
+				/** 2. 异步遍历执行invokeListener方法来唤醒监听器处理事件 */
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
@@ -155,6 +165,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		ErrorHandler errorHandler = getErrorHandler();
 		if (errorHandler != null) {
 			try {
+				/** 调用doInvokeListener方法*/
 				doInvokeListener(listener, event);
 			}
 			catch (Throwable err) {
@@ -169,6 +180,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			/** 直接调用ApplicationListener的onApplicationEvent(event)方法*/
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {
