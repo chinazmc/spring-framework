@@ -94,6 +94,7 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	 * @return the proxy object
 	 */
 	public Object getProxy() {
+		//主要分析JDKDynamicProxy，假设createAopProxy返回的就是JDKDynamicProxy
 		return createAopProxy().getProxy();
 	}
 

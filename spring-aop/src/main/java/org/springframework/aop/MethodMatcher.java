@@ -61,6 +61,8 @@ public interface MethodMatcher {
 	 * @param method the candidate method
 	 * @param targetClass the target class
 	 * @return whether or not this method matches statically
+	 * 返回当前方法是否符合切点条件，符合的话，返回true，否则返回false
+	 * 两个参数的matches它是静态匹配，我们大部分情况下，都是使用静态匹配
 	 */
 	boolean matches(Method method, Class<?> targetClass);
 
@@ -73,6 +75,7 @@ public interface MethodMatcher {
 	 * @return whether or not a runtime match via the 3-arg
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} method
 	 * is required if static matching passed
+	 *  返回true,表示需要做运行时匹配，返回false，表示不需要做运行时匹配
 	 */
 	boolean isRuntime();
 
@@ -89,6 +92,8 @@ public interface MethodMatcher {
 	 * @param args arguments to the method
 	 * @return whether there's a runtime match
 	 * @see MethodMatcher#matches(Method, Class)
+	 * 根据参数做运行时匹配，只有isRuntime返回true才代表这个切面需要做运行时匹配
+	 * 可以做到根据参数判断是否增强该方法
 	 */
 	boolean matches(Method method, Class<?> targetClass, Object... args);
 

@@ -757,6 +757,8 @@ public abstract class ClassUtils {
 		Set<Class<?>> interfaces = new LinkedHashSet<>();
 		Class<?> current = clazz;
 		while (current != null) {
+			//如果a实现了b,c接口，b接口实现了d，但是这个d接口是拿不到的。
+			//但是如果a继承了e接口，e接口实现了f接口，还是能拿到f接口的
 			Class<?>[] ifcs = current.getInterfaces();
 			for (Class<?> ifc : ifcs) {
 				if (isVisible(ifc, classLoader)) {
