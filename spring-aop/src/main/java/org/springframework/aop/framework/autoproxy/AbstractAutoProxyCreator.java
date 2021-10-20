@@ -132,7 +132,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	private BeanFactory beanFactory;
 
 	private final Set<String> targetSourcedBeans = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
-
+/**
+ * 为了避免重复将某个bean生成代理对象
+ * 1、普通路径
+ * 2、bean 与bean之间形成依赖时，也会提前创建代理对象
+ * */
 	private final Map<Object, Object> earlyProxyReferences = new ConcurrentHashMap<>(16);
 
 	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
@@ -232,7 +236,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	public Constructor<?>[] determineCandidateConstructors(Class<?> beanClass, String beanName) {
 		return null;
 	}
-
+ //ObjectFactory.getObject会触发这个方法
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
@@ -287,6 +291,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * @param bean Spring容器完全初始化完毕的实例对象
+	 * @param beanName
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
@@ -294,8 +300,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
+			//cacheKey 大部分情况下 都是 beanName
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			//防止重复代理某个bean实例
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+				//aop操作入口
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -332,6 +341,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		//条件一般不成立，因为咱们很少使用TargetSourceCreator去创建对象。BeforeInstantiation阶段
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}

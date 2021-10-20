@@ -1708,10 +1708,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @return {@code true} if actually removed, {@code false} otherwise
 	 */
 	protected boolean removeSingletonIfCreatedForTypeCheckOnly(String beanName) {
+		//整个条件成立，说明当前bean尚未创建完成
 		if (!this.alreadyCreated.contains(beanName)) {
 			removeSingleton(beanName);
 			return true;
 		}
+		//整个条件未成立，说明当前bean创建完成
 		else {
 			return false;
 		}

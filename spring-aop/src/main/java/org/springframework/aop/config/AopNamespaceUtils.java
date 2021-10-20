@@ -70,22 +70,34 @@ public abstract class AopNamespaceUtils {
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
-
+/**
+ * @param sourceElement 包装<aop:aspectj-autoproxy /> 标签数据
+ * @param parserContext 它持有一个readerContext，readerContext它持有
+ *                      registry，也就是我们的BeanFactory
+ * */
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
-
+//会把aspectj-autoproxy解析成一个beanDefinition并且注册到Spring容器内。
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		//执行到这里，Spring容器内已经有一个AOP相关的BeanDefinition了
+//参数一：Spring容器
+		//参数二：aop标签
+		//处理两个属性
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		//暂时不分析了
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
 	private static void useClassProxyingIfNecessary(BeanDefinitionRegistry registry, @Nullable Element sourceElement) {
 		if (sourceElement != null) {
+			//proxy-target-class标签属性，true表示aop底层采用cglib，默认这个属性为false
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
+				//获取出来aop相关的bd，向bd里面这个属性设置为true
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
+			//expose-proxy作用就是将当前代理对象暴露到上下文中，方便代理对象内部的真实对象 拿到代理对象
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);

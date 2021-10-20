@@ -645,8 +645,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 获取 earlySingletonReference
 			Object earlySingletonReference = getSingleton(beanName, false);
 			// 只有在存在循环依赖的情况下，earlySingletonReference 才不会为空
+			//条件成立：说明当前bean实例从2级缓存中获取到了。。。
+			//说明产生循环依赖了，3级缓存  当前对象的ObjectFactory.getObject（）被调用过。
 			if (earlySingletonReference != null) {
 				// 如果 exposedObject 没有在初始化方法中被改变，也就是没有被增强
+				//条件成立有几种情况：
+				//1、当前“真实实例”不需要被代理
+				//2、当前“实例”已经被代理过了。。。是在ObjectFactory.getObject方法调用时实现的增强代理
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
@@ -659,6 +664,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 							actualDependentBeans.add(dependentBean);
 						}
 					}
+					//为什么有问题？
+					//因为我们当前对象的AOP操作是在当前方法的initializeBean这个方法完成的。
+					//在这之前，外部其他bean持有的当前的bean实例都是尚未增强的
 					if (!actualDependentBeans.isEmpty()) {
 						throw new BeanCurrentlyInCreationException(beanName,
 								"Bean with name '" + beanName + "' has been injected into other beans [" +
