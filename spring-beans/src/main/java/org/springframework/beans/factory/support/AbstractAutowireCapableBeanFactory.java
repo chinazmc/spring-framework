@@ -595,6 +595,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					//后处理器调用点：合并bd信息，因为接下来就是populate处理依赖了..
+					//@autowired的实现逻辑
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -1127,6 +1128,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				//AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition
 				//做了一件事：提取出来当前beanType类型整个继承体系内的 @Autowired @Value @Inject 信息 并且包装成一个InjectionMetadata的一个
 				//对象，存放到 AutowiredAnnotationBeanPostProcessor 它的缓存中了，key是 beanName。
+				/**
+				 * @Autowired注解是AutoWiredAnnotationBeanPostProcessor实现的，查看该类的源码会发现它实现了MergedBeanDefinitionPostProcessor接口，
+				 * 进而实现了postProcessMergedBeanDefinition方法，通过这个方法实现注入类型的预解析，将需要依赖注入的属性信息封装到InjectionMetadata类中，
+				 * InjectionMetadata类中包含了哪些需要注入的元素以及元素要注入到哪个类中，在Spring容器启动的过程中初始化单例bean的时候通过populateBean方法实现对属性的注入。
+				 */
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
 		}
